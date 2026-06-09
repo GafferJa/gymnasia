@@ -1,5 +1,6 @@
-import React from 'react'
-import {Routes,Route} from 'react-router-dom'
+import React, { useEffect } from 'react'
+import {Routes,Route, useLocation} from 'react-router-dom'
+import { setFavicon } from './utils/setFavicon'
 
 import Home from "./Pages/Home"
 import ShopCategory from "./Pages/ShopCategory"
@@ -8,21 +9,53 @@ import Cart from "./Pages/Cart"
 import LoginSignup from "./Pages/LoginSignup"
 import Login from './Pages/Login'
 import PaymentSuccess from './Pages/PaymentSuccess'
+import SearchResults from './Pages/SearchResults'
 
 const RouterComponent = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Set favicon and title based on route
+    if (location.pathname.startsWith('/cart')) {
+      setFavicon('/cart.png');
+      document.title = 'Cart | Karigar Ko Dukaan';
+    } else if (location.pathname.startsWith('/product')) {
+      setFavicon('/logo.png');
+      document.title = 'Product | Karigar Ko Dukaan';
+    } else if (location.pathname.startsWith('/login')) {
+      setFavicon('/logo.png');
+      document.title = 'Login | Karigar Ko Dukaan';
+    } else if (location.pathname.startsWith('/search')) {
+      setFavicon('/logo.png');
+      document.title = 'Search Results | Karigar Ko Dukaan';
+    } else if (location.pathname.startsWith('/masks')) {
+      setFavicon('/logo.png');
+      document.title = 'Masks | Karigar Ko Dukaan';
+    } else if (location.pathname.startsWith('/decor')) {
+      setFavicon('/logo.png');
+      document.title = 'Decor | Karigar Ko Dukaan';
+    } else if (location.pathname.startsWith('/accessories')) {
+      setFavicon('/logo.png');
+      document.title = 'Accessories | Karigar Ko Dukaan';
+    } else {
+      setFavicon('/logo.png');
+      document.title = 'Karigar Ko Dukaan';
+    }
+  }, [location.pathname]);
+
   return (
     <div>
       <Routes>
           <Route path='/' element={<Home />} />
-          <Route path='/belts' element={<ShopCategory category="belts" />} />
-          <Route path='/sleeves' element={<ShopCategory category="sleeves" />} />
-          <Route path='/straps' element={<ShopCategory category="straps" />} />
-          <Route path='/singlets' element={<ShopCategory category="singlets" />} />
+          <Route path='/masks' element={<ShopCategory category="masks" />} />
+          <Route path='/decor' element={<ShopCategory category="decor" />} />
+          <Route path='/accessories' element={<ShopCategory category="accessories" />} />
           <Route path="/product/:productId" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/loginsignup" element={<LoginSignup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/success" element={<PaymentSuccess />} />
+          <Route path="/search" element={<SearchResults />} />
         </Routes>
     </div>
   )

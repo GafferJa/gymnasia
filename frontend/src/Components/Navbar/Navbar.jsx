@@ -1,33 +1,135 @@
-import React, { useContext, useState } from 'react'
-import { Link } from 'react-router-dom'
-import logo from '../Assets/logo_white.png'
-import { ShopContext } from '../../Context/ShopContext'
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaUser, FaShoppingCart } from 'react-icons/fa';
+import { ShopContext } from '../../Context/ShopContext';
+import logo from '/logo.png'; // Adjust the path as necessary
 
 const Navbar = () => {
-  const [menu, setMenu] = useState("home")
+  const location = useLocation();
+  const navigate = useNavigate();
   const { getTotalCartItems } = useContext(ShopContext);
+
+  const [userInfo, setUserInfo] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('userInfo'));
+    setUserInfo(user);
+  }, [location]);
+
+  const logoutHandler = () => {
+    localStorage.removeItem('userInfo');
+    setUserInfo(null);
+    setShowDropdown(false);
+    navigate('/');
+  };
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  const navLinks = [
+    { path: '/', label: 'Home' },
+    { path: '/masks', label: 'Masks' },
+    { path: '/decor', label: 'Decor' },
+    { path: '/accessories', label: 'Accessories' },
+  ];
+
+  const getLinkClass = (path) =>
+    `relative px-2 py-1 transition-all duration-300 
+     after:content-[''] after:absolute after:left-0 after:bottom-0 
+     after:h-[2px] after:w-full after:scale-x-0 after:bg-white 
+     after:origin-left after:transition-transform after:duration-300 
+     ${location.pathname === path ? 'after:scale-x-100' : ''}`;
+
   return (
-    <div className='flex items-center p-5 bg-black justify-between font-inter font-normal text-lg sticky top-0 z-10 shadow-lg shadow-black h-[4rem]'>
-      <Link to='/'><div className='ml-10 h-10 flex items-center gap-3'>
-        <img src="https://clipart-library.com/images/yTkro589c.jpg" alt="" className='h-full' />
-        <p className='text-white font-semibold text-2xl font-[Poppins] tracking-wider'>GYMNASIA</p>
-      </div></Link>
-      <ul className='flex gap-6 text-white hover:cursor-pointer tracking-wider'>
-        <Link to='/'><li onClick={() => { setMenu("home") }}> HOME {menu === "home" ? <hr /> : <></>}</li></Link>
-        <Link to='/belts'><li onClick={() => { setMenu("boards") }}>BELTS {menu === "belts" ? <hr /> : <></>}</li></Link>
-        <Link to='/sleeves'><li onClick={() => { setMenu("decks") }}>SLEEVES {menu === "sleeves" ? <hr /> : <></>}</li></Link>
-        <Link to='/straps'><li onClick={() => { setMenu("wheels") }}>STRAPS {menu === "straps" ? <hr /> : <></>}</li></Link>
-        <Link to='/singlets'><li onClick={() => { setMenu("trucks") }}>SINGLETS {menu === "singlets" ? <hr /> : <></>}</li></Link>
+    <nav className="flex justify-between items-center bg-orange-800 text-white p-2 relative">
+      {/* Logo */}
+      <Link to="/" className="flex items-center ml-20">
+        <img src={logo} alt="Gymnasia Logo" className="w-14 h-14 p-1" />
+      </Link>
+
+      {/* Navigation Links */}
+      <ul className="flex space-x-6 uppercase">
+        {navLinks.map(({ path, label }) => (
+          <li key={path}>
+            <Link to={path} className={getLinkClass(path)}>
+              {label}
+            </Link>
+          </li>
+        ))}
       </ul>
-      <div className='flex gap-5 items-center mr-10 h-10'>
-        <Link to='/loginsignup' onClick={() => { setMenu("") }}><i className="p-2 w-15 fa-solid fa-user text-white text-4xl"></i></Link>
-        <Link to='/cart' onClick={() => { setMenu("") }}>
-          <i className="fa-solid fa-cart-shopping text-white text-3xl relative"></i>
-          <p className='absolute top-4 right-12 bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-white'>{getTotalCartItems()}</p>
+
+      {/* Search Bar */}
+      <div className="flex items-center ml-80">
+        <input
+          type="text"
+          placeholder="Search products..."
+          className="px-3 py-1 rounded-l-lg border-none outline-none text-black w-48"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSearch();
+          }}
+        />
+        <button
+          className="bg-white text-orange-800 px-3 py-1 rounded-r-lg font-bold hover:bg-orange-200"
+          onClick={handleSearch}
+        >
+          Search
+        </button>
+      </div>
+
+      {/* User and Cart */}
+      <div className="flex items-center space-x-6 mr-20 relative">
+        {/* User Login / Dropdown */}
+        {userInfo ? (
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center space-x-2 focus:outline-none"
+              aria-label="User menu"
+            >
+              <FaUser className="text-xl" />
+              <span>Hello, {userInfo.name?.split(' ')[0]}</span>
+            </button>
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-40 bg-white text-black shadow-md rounded-md z-10">
+                <button
+                  onClick={logoutHandler}
+                  className="block w-full px-4 py-2 text-left hover:bg-orange-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link
+            to="/login"
+            className="flex items-center space-x-2"
+          >
+            <FaUser className="text-xl" />
+            <span>Login</span>
+          </Link>
+        )}
+
+        {/* Cart */}
+        <Link to="/cart" className="relative flex items-center space-x-2 ml-4">
+          <FaShoppingCart className="text-xl" />
+          <span>Cart</span>
+          {getTotalCartItems() > 0 && (
+            <span className="absolute -top-2 -right-3 bg-red-600 text-white text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+              {getTotalCartItems()}
+            </span>
+          )}
         </Link>
       </div>
-    </div>
-  )
-}
+    </nav>
+  );
+};
 
-export default Navbar
+export default Navbar;
